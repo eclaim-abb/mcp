@@ -8,4 +8,4 @@ services:
       MCP_AUTH_TOKEN: "${MCP_AUTH_TOKEN:?Set MCP_AUTH_TOKEN in .env}"
       ECLAIM_API_TIMEOUT: "${ECLAIM_API_TIMEOUT:-10s}"
     ports:
-      - "127.0.0.1:${ECLAIM_MCP_HOST_PORT:-8080}:8080"
+      - "127.0.0.1:${ECLAIM_MCP_HOST_PORT:-8091}:8091"

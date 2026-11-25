@@ -33,7 +33,7 @@ func loadConfig() (config, error) {
 		timeout:  10 * time.Second,
 	}
 	if cfg.addr == "" {
-		cfg.addr = "127.0.0.1:8080"
+		cfg.addr = "127.0.0.1:8091"
 	}
 	apiURL, err := url.Parse(cfg.apiURL)
 	if err != nil || (apiURL.Scheme != "http" && apiURL.Scheme != "https") ||

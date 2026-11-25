@@ -12,7 +12,7 @@ sebelum mengambil status dan waktu aktivitas terkini.
 | `ECLAIM_API_BASE_URL` | URL dasar internal `eclaim-api` |
 | `ECLAIM_API_CLIENT_ID` | Nomor client yang digunakan oleh endpoint tracking |
 | `MCP_AUTH_TOKEN` | Token antarservice minimal 32 karakter tanpa spasi |
-| `ECLAIM_MCP_LISTEN_ADDR` | Default `127.0.0.1:8080` |
+| `ECLAIM_MCP_LISTEN_ADDR` | Default `127.0.0.1:8091` |
 | `ECLAIM_API_TIMEOUT` | Default `10s` untuk verifikasi dan tracking secara keseluruhan |
 
 ## Menjalankan dengan Docker
@@ -26,12 +26,12 @@ Copy-Item .env.example .env
 # Isi .env terlebih dahulu.
 docker compose up -d --build
 docker compose ps
-curl.exe --fail http://127.0.0.1:8080/health
+curl.exe --fail http://127.0.0.1:8091/health
 ```
 
 Port bawaan Docker dipublikasikan hanya di loopback. Untuk bot yang berjalan di
-host yang sama, set `MCP_TOOL_URL=http://127.0.0.1:8080/mcp`. Jika port host
-8080 sudah dipakai, set `ECLAIM_MCP_HOST_PORT` di `.env` dan gunakan port
+host yang sama, set `MCP_TOOL_URL=http://127.0.0.1:8091/mcp`. Jika port host
+8091 sudah dipakai, set `ECLAIM_MCP_HOST_PORT` di `.env` dan gunakan port
 tersebut pada URL bot dan pemeriksaan health.
 
 Jika `eclaim-api` berjalan langsung di host Windows dengan Docker Desktop,
@@ -56,7 +56,7 @@ networks:
 
 Dalam konfigurasi jaringan bersama, gunakan
 `ECLAIM_API_BASE_URL=http://eclaim-api:1999` di MCP dan
-`MCP_TOOL_URL=http://eclaim-mcp:8080/mcp` di bot. Tambahkan jaringan eksternal
+`MCP_TOOL_URL=http://eclaim-mcp:8091/mcp` di bot. Tambahkan jaringan eksternal
 yang sama pada layanan bot jika Compose-nya terpisah.
 
 ## Menjalankan langsung dengan Go
@@ -80,7 +80,7 @@ Jalankan `eclaim-mcp` terlebih dahulu. Lalu buka UI Inspector dari PowerShell:
 npx.cmd @modelcontextprotocol/inspector
 ```
 
-1. Buat koneksi **Streamable HTTP** ke `http://127.0.0.1:8080/mcp`. Sesuaikan
+1. Buat koneksi **Streamable HTTP** ke `http://127.0.0.1:8091/mcp`. Sesuaikan
    port jika `ECLAIM_MCP_HOST_PORT` berbeda.
 2. Tambahkan header `Authorization` dengan nilai `Bearer <MCP_AUTH_TOKEN>`,
    lalu klik **Connect**.

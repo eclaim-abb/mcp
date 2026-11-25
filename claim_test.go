@@ -2,7 +2,7 @@ package main
 
 import (
 	"context"
-	"encoding/json"
+	"encoding/json/v2"
 	"fmt"
 	"io"
 	"net/http"
@@ -154,7 +154,7 @@ func TestClaimStatusOverMCP(t *testing.T) {
 				}
 				return
 			}
-			got, err := json.Marshal(result.StructuredContent)
+			got, err := json.Marshal(result.StructuredContent, json.Deterministic(true))
 			if err != nil || result.IsError {
 				t.Fatalf("unexpected tool result %+v: %v", result, err)
 			}

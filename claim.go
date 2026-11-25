@@ -2,17 +2,17 @@ package main
 
 import (
 	"context"
-	"encoding/json"
+	"encoding/json/v2"
 	"errors"
 	"io"
 	"log"
 	"net/http"
 	"net/url"
-	"regexp"
 	"strings"
 	"sync"
 	"time"
 
+	"github.com/coregx/coregex"
 	"github.com/modelcontextprotocol/go-sdk/mcp"
 )
 
@@ -26,8 +26,8 @@ const (
 )
 
 var (
-	registrationPattern = regexp.MustCompile(`^[A-Z0-9][A-Z0-9/-]{0,21}$`)
-	phoneLast4Pattern   = regexp.MustCompile(`^[0-9]{4}$`)
+	registrationPattern = coregex.MustCompile(`^[A-Z0-9][A-Z0-9/-]{0,21}$`)
+	phoneLast4Pattern   = coregex.MustCompile(`^[0-9]{4}$`)
 	errInvalidInput     = errors.New("INVALID_INPUT")
 	errVerification     = errors.New("VERIFICATION_FAILED")
 	errRateLimit        = errors.New("RATE_LIMITED")
