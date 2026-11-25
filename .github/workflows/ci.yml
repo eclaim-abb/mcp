@@ -1,0 +1,100 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  go:
+    name: Go checks
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    env:
+      GOTOOLCHAIN: local
+    defaults:
+      run:
+        shell: bash
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - uses: actions/setup-go@d8cbb8045d7f43706b9177cceb36c1f91a6644d5 # v7.1.0
+        with:
+          go-version-file: go.mod
+          cache: true
+
+      - name: Check formatting
+        run: |
+          files="$(gofmt -s -l .)"
+          if [[ -n "$files" ]]; then
+            printf 'Run gofmt -s on:\n%s\n' "$files"
+            exit 1
+          fi
+
+      - name: Check imports
+        run: |
+          files="$(go run golang.org/x/tools/cmd/goimports@latest -l .)"
+          if [[ -n "$files" ]]; then
+            printf 'Run goimports on:\n%s\n' "$files"
+            exit 1
+          fi
+
+      - name: Vet
+        run: go vet -mod=readonly ./...
+
+      - name: Test
+        run: go test -mod=readonly -race -count=1 ./...
+
+  docker:
+    name: Docker smoke test
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    defaults:
+      run:
+        shell: bash
+    env:
+      ECLAIM_API_BASE_URL: http://127.0.0.1:1
+      ECLAIM_API_CLIENT_ID: "42"
+      MCP_AUTH_TOKEN: synthetic-ci-smoke-test-token-0001
+      ECLAIM_MCP_HOST_PORT: "8091"
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Build and start container
+        run: docker compose up --build --wait --wait-timeout 90
+
+      - name: Verify health and MCP authorization
+        run: |
+          base_url=http://127.0.0.1:$ECLAIM_MCP_HOST_PORT
+          curl --fail-with-body --silent --show-error --max-time 5 "$base_url/health" |
+            jq -e '.status == "ok"'
+
+          status="$(curl --silent --show-error --max-time 5 --output /dev/null \
+            --write-out '%{http_code}' --request POST "$base_url/mcp")"
+          if [[ "$status" != 401 ]]; then
+            printf 'Expected HTTP 401 without a service token, got %s\n' "$status"
+            exit 1
+          fi
+
+          curl --fail-with-body --silent --show-error --max-time 5 \
+            --header "Authorization: Bearer $MCP_AUTH_TOKEN" \
+            --header 'Content-Type: application/json' \
+            --header 'Accept: application/json, text/event-stream' \
+            --data '{"jsonrpc":"2.0","id":1,"method":"initialize","params":{"protocolVersion":"2025-11-25","capabilities":{},"clientInfo":{"name":"ci","version":"1.0.0"}}}' \
+            "$base_url/mcp" | jq -e '.result.serverInfo.name == "eclaim-mcp"'
+
+      - name: Show container logs on failure
+        if: failure()
+        run: docker compose logs --no-color
+
+      - name: Stop container
+        if: always()
+        run: docker compose down
